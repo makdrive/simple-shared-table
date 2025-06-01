@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  server:
+    build: ./server
+    ports:
+      - "3001:3001" # Map host port 3001 to container port 3001 (backend)
+    volumes:
+      - ./server:/usr/src/app/server # Mount server code for development (optional for production)
+      - /usr/src/app/server/node_modules # Don't mount node_modules from host
+    environment:
+      - NODE_ENV=development # Or production
+      # PORT=3001 # Already set in index.js as default
+
+  client:
+    build: ./client
+    ports:
+      - "5173:80" # Map host port 5173 (Vite's default dev) to container port 80 (Nginx)
+    volumes:
+      - ./client:/usr/src/app/client # Mount client code for development (optional for production)
+      - /usr/src/app/client/node_modules # Don't mount node_modules from host
+    depends_on:
+      - server
+    environment:
+      # For Vite, to ensure it proxies to the correct backend URL if using dev server inside container
+      # However, with Nginx serving static build, this is less critical.
+      # If running Vite dev server: VITE_API_URL=http://server:3001
+      # We need to adjust client code to use relative URLs or environment variables for API calls
+      # For now, the Nginx setup serves built files, and API calls are hardcoded to localhost:3001.
+      # This will work if 'server' is accessible as 'localhost' from the client container,
+      # or if the client is accessing the server via the host machine's network.
+      # For proper service discovery within Docker, client should call 'http://server:3001'.
+      # This requires changing the fetch URL in FileExplorer.jsx.
+      # Let's update FileExplorer.jsx to use a relative path or an env var for the API URL for better containerization.
+      # No, let's keep the FileExplorer.jsx as is for now, and assume the user will access the client
+      # on localhost:5173 and the client will make requests to localhost:3001 (the mapped server port).
+      # This is simpler for this stage.
+      # If running the Vite dev server directly in the container (not Nginx), you'd map 5173:5173.
+      # The current Nginx setup means the React app (built) is served on port 80 in its container, mapped to 5173 on the host.
+      # The React app's fetch calls will go to localhost:3001 on the host, which is mapped to the server container.
+      # Socket.IO connection string in App.jsx also hardcoded to localhost:3001.
+      VITE_APP_SOCKET_ENDPOINT: "http://localhost:3001" # For client to connect to socket
+      VITE_APP_API_BASE_URL: "http://localhost:3001/api" # For client to make API calls
