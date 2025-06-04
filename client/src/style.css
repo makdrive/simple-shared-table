@@ -1,0 +1,35 @@
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.container {
+  display: flex;
+  height: 100vh;
+}
+
+.explorer {
+  width: 200px;
+  padding: 1rem;
+  border-right: 1px solid #ccc;
+  overflow-y: auto;
+}
+
+.sheet {
+  flex: 1;
+  padding: 1rem;
+  overflow: auto;
+}
+
+.sheet input {
+  width: 100%;
+  box-sizing: border-box;
+  border: none;
+  padding: 4px;
+}
+
+.sheet th,
+.sheet td {
+  border: 1px solid #ddd;
+  padding: 0;
+}
